@@ -1,3 +1,4 @@
+# leveraging NodeJS and Docker skills 
 # 6rabyat - Music Streaming Platform
 
 6rabyat is a modern, full-stack music streaming application that combines audio streaming with social networking features. Built with Next.js, Node.js, and Docker, it offers a seamless experience for discovering, sharing, and listening to music.
