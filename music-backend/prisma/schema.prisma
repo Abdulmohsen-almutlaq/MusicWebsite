@@ -1,0 +1,97 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int      @id @default(autoincrement())
+  username          String   @unique
+  email             String   @unique
+  password          String
+  isVerified        Boolean  @default(false)
+  isPrivate         Boolean  @default(false)
+  verificationToken String?
+  createdAt         DateTime @default(now())
+  playlists         Playlist[]
+  tracks            Track[]
+  
+  // Social Features
+  followedBy        User[]    @relation("UserFollows")
+  following         User[]    @relation("UserFollows")
+  likes             Like[]
+  playlistLikes     PlaylistLike[]
+  comments          Comment[]
+}
+
+model Track {
+  id         Int       @id @default(autoincrement())
+  title      String
+  artist     String
+  duration   Int?
+  filePath   String
+  coverPath  String?
+  genre      String?
+  uploadedAt DateTime  @default(now())
+  isPublic   Boolean   @default(true)
+  playCount  Int       @default(0)
+  
+  userId     Int?
+  user       User?     @relation(fields: [userId], references: [id])
+  
+  playlists  Playlist[]
+  likes      Like[]
+  comments   Comment[]
+}
+
+model Playlist {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  isPublic    Boolean  @default(true)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  tracks      Track[]
+  likes       PlaylistLike[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  trackId   Int
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId]) // User can like a track only once
+}
+
+model PlaylistLike {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  playlistId Int
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, playlistId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  userId    Int
+  trackId   Int
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+}

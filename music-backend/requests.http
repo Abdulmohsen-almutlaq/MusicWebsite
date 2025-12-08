@@ -1,0 +1,58 @@
+@sitePassword = MySecretSitePassword123!
+
+### 1. Register a new user (Success)
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+x-site-password: {{sitePassword}}
+
+{
+  "email": "abdul.almutlaq@hotmail.com",
+  "password": "MyStrongPassword1!"
+}
+
+### 1b. Register - Invalid Email Test (Should Fail)
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+x-site-password: {{sitePassword}}
+
+{
+  "email": "not-an-email",
+  "password": "MyStrongPassword1!"
+}
+
+### 2. Login (Will fail until verified)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+x-site-password: {{sitePassword}}
+
+{
+  "email": "user@example.com",
+  "password": "MyStrongPassword1!"
+}
+
+### 3. Verify User (Check Console)
+# Since SMTP is not configured, check your terminal where `npm run dev` is running.
+# You will see a link like: http://localhost:3000/api/auth/verify?token=...
+# Click that link or paste it into your browser to verify.
+# Note: You might need to append &site_password=MySecretSitePassword123! to the URL in the browser.
+
+### 4. Login (After Verification)
+# @name login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+x-site-password: {{sitePassword}}
+
+{
+  "email": "user@example.com",
+  "password": "MyStrongPassword1!"
+}
+
+### 5. Get All Tracks
+GET http://localhost:3000/api/tracks
+x-site-password: {{sitePassword}}
+
+### 6. Stream a Track (Example)
+# Replace '1' with a real ID from the previous request
+GET http://localhost:3000/api/tracks/stream/1
+Range: bytes=0-
+x-site-password: {{sitePassword}}

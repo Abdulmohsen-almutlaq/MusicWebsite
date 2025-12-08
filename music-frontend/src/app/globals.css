@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  /* User Palette - Postman Dark Mode Inspired */
+  --color-brand-dark: #161616;       /* Main Background */
+  --color-brand-medium: #212121;     /* Sidebar/Cards */
+  --color-brand-light: #6B6B6B;      /* Secondary Text/Borders */
+  --color-brand-beige: #EDEDED;      /* Primary Text */
+
+  /* Accents & Functional Colors */
+  --color-brand-accent: #FF6C37;       /* Postman Orange */
+  --color-brand-accent-hover: #E05A2B; /* Darker Orange */
+  --color-brand-success: #81B29A;      /* Sage Green: Success/Verified */
+  --color-brand-error: #E63946;        /* Red: Errors/Delete */
+  --color-brand-warning: #F2CC8F;      /* Gold: Warnings/Highlights */
+
+  --background: var(--color-brand-dark);
+  --foreground: var(--color-brand-beige);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-brand-dark: #161616;
+  --color-brand-medium: #212121;
+  --color-brand-light: #6B6B6B;
+  --color-brand-beige: #EDEDED;
+
+  --color-brand-accent: #FF6C37;
+  --color-brand-accent-hover: #E05A2B;
+  --color-brand-success: #81B29A;
+  --color-brand-error: #E63946;
+  --color-brand-warning: #F2CC8F;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--color-brand-dark);
+    --foreground: var(--color-brand-beige);
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}

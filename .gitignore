@@ -1,0 +1,17 @@
+# Production
+/node_modules
+/.next
+.env.local
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (Don't commit actual music/db to git, but keep folder structure)
+data/music/*
+!data/music/.gitkeep
+data/covers/*
+!data/covers/.gitkeep
+data/db/*.db
+!data/db/.gitkeep

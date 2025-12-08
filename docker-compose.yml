@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Node.js Backend
+  api:
+    build: ./music-backend
+    ports:
+      - "8080:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=file:../data/db/dev.db
+      - JWT_SECRET=${JWT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - API_URL=${PUBLIC_FRONTEND_URL}
+      - GLOBAL_ACCESS_PASSWORD=${GLOBAL_ACCESS_PASSWORD}
+      # Allow CORS from the frontend URL
+      - FRONTEND_URL=${PUBLIC_FRONTEND_URL}
+    volumes:
+      - ./data:/app/data
+    restart: always
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./music-frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_BACKEND_URL}
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${PUBLIC_BACKEND_URL}
+    depends_on:
+      - api
+    restart: always
