@@ -34,8 +34,6 @@ services:
       - FRONTEND_URL=${PUBLIC_FRONTEND_URL}
     volumes:
       - ./data:/app/data
-    depends_on:
-      - db
     restart: always
 
   # Frontend (Next.js)
