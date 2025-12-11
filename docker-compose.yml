@@ -15,19 +15,6 @@ services:
       - api
     restart: always
 
-  # PostgreSQL Database
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=musicdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: always
-
   # Node.js Backend
   api:
     build: ./music-backend
@@ -35,7 +22,7 @@ services:
       - "8080:3000"
     environment:
       - PORT=3000
-      - DATABASE_URL=postgresql://postgres:password@db:5432/musicdb
+      - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
@@ -63,6 +50,3 @@ services:
     depends_on:
       - api
     restart: always
-
-volumes:
-  postgres_data:
