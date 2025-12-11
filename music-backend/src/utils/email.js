@@ -1,9 +1,45 @@
 const { Resend } = require('resend');
 
-const sendVerificationEmail = async (email, token) => {
+const sendVerificationEmail = async (email, token, req = null) => {
   // Point to the Frontend Verify Page
-  // Use FRONTEND_URL if available, otherwise fallback to API_URL or a default
-  const baseUrl = process.env.FRONTEND_URL || process.env.API_URL || 'http://localhost:3000';
+  // 1. Try FRONTEND_URL env var (and ignore if it's localhost in production)
+  // 2. Try API_URL env var
+  // 3. Try to infer from request headers (Host header)
+  // 4. Fallback to localhost
+  let baseUrl = process.env.FRONTEND_URL;
+
+  // If FRONTEND_URL is localhost but we have a request object with a different host, prefer the request host
+  if (baseUrl && baseUrl.includes('localhost') && req) {
+     const host = req.get('host');
+     if (host && !host.includes('localhost')) {
+        baseUrl = null; // Reset so we fall through to dynamic detection
+     }
+  }
+
+  if (!baseUrl) {
+     baseUrl = process.env.API_URL;
+  }
+
+  if (!baseUrl && req) {
+    const protocol = req.protocol;
+    const host = req.get('host');
+    if (host) {
+      // If the request came to api.domain.com, frontend is likely domain.com
+      // But here we are likely behind a proxy where host is the domain
+      baseUrl = `${protocol}://${host}`;
+    }
+  }
+
+  if (!baseUrl) {
+    baseUrl = 'http://localhost:3000';
+  }
+
+  // Ensure no trailing slash
+  baseUrl = baseUrl.replace(/\/$/, '');
+
+  // If the URL ends with /api, strip it to get the frontend root
+  baseUrl = baseUrl.replace(/\/api$/, '');
+
   const verificationLink = `${baseUrl}/verify?token=${token}`;
   const apiKey = process.env.SMTP_PASS; // We stored the Resend Key here in the previous steps
 
