@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// Ensure apiUrl ends with /api
+let apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+if (apiUrl !== '/api' && !apiUrl.endsWith('/api')) {
+  apiUrl = apiUrl.replace(/\/$/, '') + '/api';
+}
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
+  baseURL: apiUrl,
 });
 
 // Add a request interceptor to include tokens
@@ -27,9 +33,7 @@ api.interceptors.request.use(
 
 export const getCoverUrl = (coverPath) => {
   if (!coverPath) return null;
-  // Default to empty string if env var is missing, but it really should be there.
-  // We assume NEXT_PUBLIC_API_URL ends with /api, so we strip it to get the root.
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+  // We assume apiUrl ends with /api, so we strip it to get the root.
   const baseUrl = apiUrl.replace(/\/api\/?$/, ''); 
   return `${baseUrl}/covers/${coverPath}`;
 };
