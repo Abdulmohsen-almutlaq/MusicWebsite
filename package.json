@@ -1,5 +1,24 @@
 {
+  "name": "music-website",
+  "version": "1.0.0",
+  "description": "Music streaming website with backend and frontend",
+  "scripts": {
+    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
+    "start-backend": "cd music-backend && npm start",
+    "start-frontend": "cd music-frontend && npm start",
+    "build": "cd music-frontend && npm run build",
+    "dev": "concurrently \"npm run dev-backend\" \"npm run dev-frontend\"",
+    "dev-backend": "cd music-backend && npm run dev",
+    "dev-frontend": "cd music-frontend && npm run dev"
+  },
+  "workspaces": [
+    "music-backend",
+    "music-frontend"
+  ],
   "dependencies": {
     "@socket.io/sticky": "^1.0.4"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
