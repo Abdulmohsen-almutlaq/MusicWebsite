@@ -13,8 +13,6 @@ services:
   # Node.js Backend
   api:
     build: ./music-backend
-    ports:
-      - "8080:3000"
     environment:
       - PORT=3000
       - DATABASE_URL=postgresql://postgres:password@db:5432/musicdb
