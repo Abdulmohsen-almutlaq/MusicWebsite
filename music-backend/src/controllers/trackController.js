@@ -131,7 +131,12 @@ exports.getTrendingTracks = async (req, res) => {
       include: {
         user: { select: { id: true, username: true } },
         _count: { select: { likes: true, comments: true } },
-        likes: { select: { userId: true } }
+        likes: { select: { userId: true } },
+        comments: {
+          include: { user: { select: { username: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 3
+        }
       },
       orderBy: { likes: { _count: 'desc' } },
       take: 10
@@ -150,7 +155,12 @@ exports.getTopRatedTracks = async (req, res) => {
       include: {
         user: { select: { id: true, username: true } },
         _count: { select: { likes: true, comments: true } },
-        likes: { select: { userId: true } }
+        likes: { select: { userId: true } },
+        comments: {
+          include: { user: { select: { username: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 3
+        }
       },
       orderBy: { comments: { _count: 'desc' } },
       take: 10

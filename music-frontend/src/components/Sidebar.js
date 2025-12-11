@@ -1,6 +1,6 @@
-import { Home, Search, Library, PlusSquare, LogOut, User, Settings, Users, Mic2, X } from 'lucide-react';
+import { Home, Search, Library, PlusSquare, LogOut, User, Settings, Users, Mic2, X, Shield } from 'lucide-react';
 
-export default function Sidebar({ activeView, setView, logout, isOpen, setIsOpen }) {
+export default function Sidebar({ activeView, setView, logout, isOpen, setIsOpen, user }) {
   const menuItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'search', label: 'Search', icon: Search },
@@ -11,6 +11,10 @@ export default function Sidebar({ activeView, setView, logout, isOpen, setIsOpen
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  if (user && user.role === 'admin') {
+    menuItems.push({ id: 'admin', label: 'Admin Dashboard', icon: Shield });
+  }
 
   return (
     <>

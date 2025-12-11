@@ -4,6 +4,7 @@ import UserCard from '../UserCard';
 import PlaylistCard from '../PlaylistCard';
 import SkeletonCard from '../SkeletonCard';
 import HorizontalSection from '../HorizontalSection';
+import SocialRow from '../SocialRow';
 
 const HomeView = ({ newReleases, trending, topRated, suggestedUsers, featuredPlaylists, loading, user, handlePlay, handlePlayPlaylist, handleLike, handleComment, onDelete, handleFollow, handleUnfollow }) => {
   const [greeting, setGreeting] = React.useState('');
@@ -44,6 +45,11 @@ const HomeView = ({ newReleases, trending, topRated, suggestedUsers, featuredPla
         </h1>
         <p className="text-brand-light/60 mt-2">Here's what's happening in your music world today.</p>
       </header>
+
+      {/* Social Row */}
+      {suggestedUsers?.length > 0 && (
+        <SocialRow users={suggestedUsers} onPlayPlaylist={handlePlayPlaylist} />
+      )}
 
       {(!newReleases?.length && !trending?.length && !topRated?.length && !suggestedUsers?.length && !featuredPlaylists?.length) ? (
         <div className="text-center py-20 opacity-50">

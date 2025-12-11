@@ -1,4 +1,4 @@
-import { Play, Heart, MessageCircle, Share2, MoreHorizontal, ListPlus, Plus, X, User, Trash2 } from 'lucide-react';
+import { Play, Heart, MessageCircle, Share2, MoreHorizontal, ListPlus, Plus, X, User, Trash2, Music } from 'lucide-react';
 import React, { useState, useMemo, memo } from 'react';
 import api, { getCoverUrl } from '../utils/api';
 
@@ -110,65 +110,117 @@ const TrackCard = memo(({ track, user, onPlay, onLike, onComment, onDelete }) =>
     }
   };
 
+  const hasCover = !!track.coverPath && !imgError;
+  
+  // Generate a consistent color based on track title
+  const seed = (track.title || '').split('').reduce((a,c) => a + c.charCodeAt(0), 0);
+  const hue = seed % 360;
+  const gradientStyle = !hasCover ? {
+    background: `linear-gradient(135deg, hsl(${hue}, 40%, 20%) 0%, hsl(${(hue + 40) % 360}, 30%, 15%) 100%)`
+  } : {};
+
   return (
-    <div className={`bg-brand-medium/40 backdrop-blur-sm border border-brand-light/10 hover:bg-brand-medium/60 hover:border-brand-light/20 transition-all duration-300 p-4 rounded-2xl group flex flex-col h-full ${showPlaylistMenu ? 'relative z-50' : ''}`}>
-      {/* Cover Image Area */}
-      <div className="relative aspect-square mb-4 rounded-xl overflow-hidden shadow-2xl bg-brand-medium group-hover:shadow-brand-light/20 transition-shadow duration-500">
-        <img 
-          src={coverUrl} 
-          alt={track.title}
-          loading="lazy"
-          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500 ease-out"
-          onError={() => setImgError(true)}
-        />
-        
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        {/* Play Button */}
-        <button 
-          onClick={() => onPlay(track)}
-          className="absolute bottom-4 right-4 w-14 h-14 bg-brand-accent hover:bg-brand-accent-hover text-brand-beige rounded-full flex items-center justify-center shadow-lg shadow-brand-dark/50 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
-          aria-label={`Play ${track.title}`}
-        >
-          <Play fill="currentColor" className="ml-1" size={24} />
-        </button>
-      </div>
-
-      {/* Track Info */}
-      <div className="flex-1 min-w-0 mb-4">
-        <div className="flex justify-between items-start gap-2">
-          <div className="min-w-0">
-            <h3 className="font-bold text-brand-beige truncate text-lg leading-tight mb-1 group-hover:text-brand-light transition-colors">
-              {track.title}
-            </h3>
-            <p className="text-sm text-brand-light truncate hover:text-brand-beige transition-colors cursor-pointer">
-              {track.artist}
-            </p>
-            {track.user && (
-              <div className="flex items-center gap-1.5 mt-1.5 text-xs text-brand-light/50 group/uploader">
-                <User size={12} className="group-hover/uploader:text-brand-light transition-colors" />
-                <span className="truncate group-hover/uploader:text-brand-light transition-colors">
-                  {track.user.username || 'Unknown'}
-                </span>
-              </div>
-            )}
+    <div 
+      className={`relative group flex flex-col w-full min-h-[400px] transition-all duration-300 rounded-2xl overflow-hidden ${
+        hasCover 
+          ? 'border border-brand-light/10' 
+          : 'border border-white/5 hover:border-white/10'
+      } ${showPlaylistMenu ? 'z-50' : ''}`}
+      style={!hasCover ? gradientStyle : {}}
+    >
+      {hasCover ? (
+        <>
+          {/* Full Bleed Cover Image */}
+          <div className="absolute inset-0 z-0">
+            <img 
+              src={coverUrl} 
+              alt={track.title}
+              loading="lazy"
+              className="w-full h-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-110"
+              onError={() => setImgError(true)}
+            />
+            {/* Gradient Overlay for Text Readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90" />
           </div>
-          {track.genre && (
-            <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-brand-beige bg-brand-light/20 border border-brand-light/30 px-2 py-1 rounded-full">
-              {track.genre}
-            </span>
-          )}
+
+          {/* Content Overlay */}
+          <div className="relative z-10 flex flex-col flex-1 p-5 pointer-events-none">
+            {/* Top: Genre/User */}
+            <div className="flex justify-between items-start opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+               {track.genre && (
+                 <span className="text-[10px] font-medium uppercase tracking-wider text-white/90 bg-black/30 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
+                   {track.genre}
+                 </span>
+               )}
+            </div>
+
+            {/* Center: Play Button */}
+            <div className="flex-1 flex items-center justify-center pointer-events-auto">
+                <button 
+                  onClick={() => onPlay(track)}
+                  className="w-16 h-16 bg-brand-accent hover:bg-brand-accent-hover text-brand-beige rounded-full flex items-center justify-center shadow-lg shadow-black/50 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 active:scale-95"
+                  aria-label={`Play ${track.title}`}
+                >
+                  <Play fill="currentColor" className="ml-1" size={28} />
+                </button>
+            </div>
+
+            {/* Bottom: Info */}
+            <div className="mt-auto mb-2 pointer-events-auto relative z-20">
+                <h3 className="font-bold text-white text-xl leading-tight mb-1 drop-shadow-md line-clamp-2">
+                  {track.title}
+                </h3>
+                <p className="text-sm text-white/90 hover:text-white transition-colors cursor-pointer font-medium line-clamp-1">
+                  {track.artist}
+                </p>
+                {track.user && (
+                  <p className="text-xs text-white/70 mt-1 font-light">
+                    Uploaded by <span className="font-medium text-white/90">{track.user.username}</span>
+                  </p>
+                )}
+            </div>
+          </div>
+        </>
+      ) : (
+        /* Poster Layout for No Cover */
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-6 relative z-10">
+           {/* Decorative Icon */}
+           <Music className="absolute top-4 right-4 text-white/5" size={64} />
+           
+           {/* Play Button */}
+           <button 
+              onClick={() => onPlay(track)}
+              className="mb-6 w-16 h-16 bg-white/10 hover:bg-white/20 text-brand-beige rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 hover:scale-110 active:scale-95 group-hover:shadow-lg shadow-black/20"
+           >
+              <Play fill="currentColor" className="ml-1" size={28} />
+           </button>
+
+           <h3 className="font-black text-2xl text-brand-beige leading-tight mb-2 line-clamp-3">
+             {track.title}
+           </h3>
+           <p className="text-sm font-medium text-brand-light/80 uppercase tracking-wider mb-1">
+             {track.artist}
+           </p>
+           {track.user && (
+             <p className="text-xs text-brand-light/60 mt-1 mb-2">
+               Uploaded by <span className="text-brand-light/80">{track.user.username}</span>
+             </p>
+           )}
+           {track.genre && (
+             <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-brand-light/60 mt-2">
+               {track.genre}
+             </span>
+           )}
         </div>
-      </div>
+      )}
 
       {/* Actions Bar */}
-      <div className="flex items-center justify-between pt-4 border-t border-brand-light/10 mt-auto relative">
+      <div className={`flex items-center justify-between pt-4 mt-auto relative z-20 ${hasCover ? 'px-5 pb-5 border-t border-white/10' : 'px-6 pb-4 border-t border-white/5'}`}>
         <div className="flex items-center gap-4">
           <button 
             onClick={() => onLike(track.id)}
             className={`flex items-center gap-1.5 text-sm transition-colors ${
-              isLiked ? "text-brand-accent" : "text-brand-light hover:text-brand-accent"
+              isLiked ? "text-brand-accent" : (hasCover ? "text-white/70 hover:text-brand-accent" : "text-brand-light hover:text-brand-accent")
             }`}
             title={isLiked ? "Unlike" : "Like"}
           >
@@ -179,7 +231,7 @@ const TrackCard = memo(({ track, user, onPlay, onLike, onComment, onDelete }) =>
           <button  
             onClick={() => setShowComments(!showComments)}
             className={`flex items-center gap-1.5 text-sm transition-colors ${
-              showComments ? "text-blue-400" : "text-brand-light hover:text-blue-400"
+              showComments ? "text-blue-400" : (hasCover ? "text-white/70 hover:text-blue-400" : "text-brand-light hover:text-blue-400")
             }`}
             title="Comments"
           >
@@ -192,7 +244,7 @@ const TrackCard = memo(({ track, user, onPlay, onLike, onComment, onDelete }) =>
             <button 
               onClick={togglePlaylistMenu}
               className={`flex items-center gap-1.5 text-sm transition-colors ${
-                showPlaylistMenu ? "text-brand-beige" : "text-brand-light hover:text-brand-beige"
+                showPlaylistMenu ? "text-brand-beige" : (hasCover ? "text-white/70 hover:text-white" : "text-brand-light hover:text-brand-beige")
               }`}
               title="Add to Playlist"
             >
@@ -291,7 +343,9 @@ const TrackCard = memo(({ track, user, onPlay, onLike, onComment, onDelete }) =>
           {onDelete && user && (track.userId == user.id || (track.user && track.user.id == user.id)) && (
             <button 
               onClick={() => onDelete(track.id)}
-              className="flex items-center gap-1.5 text-sm text-brand-light hover:text-brand-error transition-colors"
+              className={`flex items-center gap-1.5 text-sm transition-colors ${
+                hasCover ? "text-white/70 hover:text-brand-error" : "text-brand-light hover:text-brand-error"
+              }`}
               title="Delete Track"
             >
               <Trash2 size={18} />
@@ -299,14 +353,14 @@ const TrackCard = memo(({ track, user, onPlay, onLike, onComment, onDelete }) =>
           )}
         </div>
         
-        <div className="flex items-center gap-3 text-xs text-brand-light/70 font-medium">
+        <div className={`flex items-center gap-3 text-xs font-medium ${hasCover ? "text-white/60" : "text-brand-light/70"}`}>
           <span>{formatNumber(track.playCount)} plays</span>
         </div>
       </div>
 
       {/* Comments Section */}
       {showComments && (
-        <div className="mt-4 pt-4 border-t border-brand-light/10 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="mt-4 pt-4 border-t border-brand-light/10 animate-in fade-in slide-in-from-top-2 duration-200 relative z-30 bg-brand-dark/90 backdrop-blur-md p-4 rounded-xl">
           <div className="space-y-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar pr-2">
             {track.comments?.length > 0 ? (
               track.comments.map(c => (
@@ -319,13 +373,13 @@ const TrackCard = memo(({ track, user, onPlay, onLike, onComment, onDelete }) =>
                       {new Date(c.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-sm text-brand-beige/80 mt-0.5 break-words leading-relaxed">
+                  <p className="text-sm text-white/90 mt-0.5 break-words leading-relaxed">
                     {c.content}
                   </p>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-brand-light/50 text-center py-2 italic">No comments yet. Be the first!</p>
+              <p className="text-xs text-white/50 text-center py-2 italic">No comments yet. Be the first!</p>
             )}
           </div>
           
@@ -336,7 +390,7 @@ const TrackCard = memo(({ track, user, onPlay, onLike, onComment, onDelete }) =>
               onChange={(e) => setComment(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Write a comment..."
-              className="w-full bg-brand-dark/30 border border-brand-light/20 rounded-full pl-4 pr-12 py-2 text-sm text-brand-beige placeholder-brand-light/50 focus:ring-2 focus:ring-brand-light/50 focus:border-brand-light/50 outline-none transition-all"
+              className="w-full bg-brand-dark/50 border border-brand-light/20 rounded-full pl-4 pr-12 py-2 text-sm text-white placeholder-white/50 focus:ring-2 focus:ring-brand-light/50 focus:border-brand-light/50 outline-none transition-all"
             />
             <button 
               onClick={handleCommentSubmit}

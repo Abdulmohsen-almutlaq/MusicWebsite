@@ -86,7 +86,8 @@ exports.likeTrack = async (req, res) => {
       data: { userId, trackId }
     });
 
-    io.getIO().emit('like_update', { trackId });
+    const count = await prisma.like.count({ where: { trackId } });
+    io.getIO().emit('like_update', { trackId, count });
 
     res.json({ message: 'Track liked' });
   } catch (error) {
@@ -108,7 +109,8 @@ exports.unlikeTrack = async (req, res) => {
       where: { userId, trackId }
     });
 
-    io.getIO().emit('like_update', { trackId });
+    const count = await prisma.like.count({ where: { trackId } });
+    io.getIO().emit('like_update', { trackId, count });
 
     res.json({ message: 'Track unliked' });
   } catch (error) {

@@ -119,27 +119,46 @@ export const useHome = () => {
       const socketUrl = apiUrl.includes('/api') ? apiUrl.replace('/api', '') : apiUrl;
       const socket = io(socketUrl);
       
-      // Debounced Socket Handler
-      const handleSocketUpdate = (type) => {
-        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-        refreshTimeoutRef.current = setTimeout(() => {
-          fetchFeed(false);
-          if (type === 'like_update') fetchLibrary();
-        }, 2000);
-      };
-      
       socket.on('new_track', (data) => {
         setSocketMessage(`New Release: ${data.track.title}`);
         setTimeout(() => setSocketMessage(''), 5000);
-        handleSocketUpdate('new_track');
+        
+        // Optimistic Update: Add to feed
+        setFeed(prev => [data.track, ...prev]);
       });
 
-      socket.on('like_update', () => handleSocketUpdate('like_update'));
-      socket.on('new_comment', () => handleSocketUpdate('new_comment'));
+      socket.on('like_update', ({ trackId, count }) => {
+        const updateTrack = (track) => {
+            if (track.id === trackId) {
+                return { ...track, _count: { ...track._count, likes: count } };
+            }
+            return track;
+        };
+        setFeed(prev => prev.map(updateTrack));
+        setTrending(prev => prev.map(updateTrack));
+        setTopRated(prev => prev.map(updateTrack));
+        // Also update library if needed, but maybe less critical to do instantly
+        // fetchLibrary(); 
+      });
+
+      socket.on('new_comment', ({ trackId, comment }) => {
+         const updateTrack = (track) => {
+            if (track.id === trackId) {
+                return { 
+                    ...track, 
+                    _count: { ...track._count, comments: (track._count?.comments || 0) + 1 },
+                    comments: [comment, ...(track.comments || [])].slice(0, 5)
+                };
+            }
+            return track;
+        };
+        setFeed(prev => prev.map(updateTrack));
+        setTrending(prev => prev.map(updateTrack));
+        setTopRated(prev => prev.map(updateTrack));
+      });
 
       return () => {
         socket.disconnect();
-        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
       };
     }
   }, [user, fetchFeed, fetchDiscovery, fetchLibrary]);
@@ -247,10 +266,22 @@ export const useHome = () => {
     playTrack(track, feed);
   }, [playTrack, feed]);
 
-  const handlePlayPlaylist = useCallback((playlist) => {
-    if (!playlist.tracks || playlist.tracks.length === 0) return;
-    const tracks = playlist.tracks.map(t => t.track || t);
-    playTrack(tracks[0], tracks);
+  const handlePlayPlaylist = useCallback(async (playlist) => {
+    try {
+      // Fetch full playlist to get all tracks
+      const { data } = await api.get(`/playlists/${playlist.id}`);
+      if (!data.tracks || data.tracks.length === 0) return;
+      
+      const tracks = data.tracks.map(t => t.track || t);
+      playTrack(tracks[0], tracks);
+    } catch (e) {
+      console.error("Failed to play playlist", e);
+      // Fallback to existing tracks if fetch fails
+      if (playlist.tracks && playlist.tracks.length > 0) {
+        const tracks = playlist.tracks.map(t => t.track || t);
+        playTrack(tracks[0], tracks);
+      }
+    }
   }, [playTrack]);
 
   const handleDeletePlaylist = async (playlistId) => {

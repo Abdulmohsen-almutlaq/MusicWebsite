@@ -1,18 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  /* User Palette - Postman Dark Mode Inspired */
-  --color-brand-dark: #161616;       /* Main Background */
-  --color-brand-medium: #212121;     /* Sidebar/Cards */
-  --color-brand-light: #6B6B6B;      /* Secondary Text/Borders */
-  --color-brand-beige: #EDEDED;      /* Primary Text */
+  /* Enhanced User Palette - Postman Dark Mode with Depth */
+  --color-brand-dark: #161616;           /* Deep Background */
+  --color-brand-dark-elevated: #1a1a1a;  /* Slightly elevated surfaces */
+  --color-brand-medium: #212121;         /* Card backgrounds */
+  --color-brand-medium-hover: #262626;   /* Hover states */
+  --color-brand-light: #6B6B6B;          /* Secondary text */
+  --color-brand-light-hover: #808080;   /* Lighter text on hover */
+  --color-brand-beige: #EDEDED;          /* Primary text */
+  --color-brand-beige-muted: #CCCCCC;    /* Muted text */
 
-  /* Accents & Functional Colors */
-  --color-brand-accent: #FF6C37;       /* Postman Orange */
-  --color-brand-accent-hover: #E05A2B; /* Darker Orange */
-  --color-brand-success: #81B29A;      /* Sage Green: Success/Verified */
-  --color-brand-error: #E63946;        /* Red: Errors/Delete */
-  --color-brand-warning: #F2CC8F;      /* Gold: Warnings/Highlights */
+  /* Enhanced Accents with Depth */
+  --color-brand-accent: #FF6C37;           /* Primary accent */
+  --color-brand-accent-hover: #E05A2B;     /* Hover state */
+  --color-brand-accent-light: #FF8A6A;     /* Light accent for highlights */
+  --color-brand-accent-dark: #CC5730;      /* Dark accent for shadows */
+
+  --color-brand-success: #81B29A;          /* Success */
+  --color-brand-success-light: #9FC4B0;    /* Light success */
+  --color-brand-error: #E63946;            /* Error */
+  --color-brand-error-light: #EB5A65;      /* Light error */
+  --color-brand-warning: #F2CC8F;          /* Warning */
+  --color-brand-warning-light: #F5D5A0;    /* Light warning */
+
+  /* Depth & Shadow Variables */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 20px rgba(255, 108, 55, 0.3);
+
+  /* Gradient Backgrounds */
+  --gradient-primary: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-dark-elevated) 100%);
+  --gradient-card: linear-gradient(135deg, var(--color-brand-medium) 0%, var(--color-brand-medium-hover) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--color-brand-accent) 0%, var(--color-brand-accent-hover) 100%);
+  --gradient-success: linear-gradient(135deg, var(--color-brand-success) 0%, var(--color-brand-success-light) 100%);
 
   --background: var(--color-brand-dark);
   --foreground: var(--color-brand-beige);
@@ -21,20 +44,28 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  
+
   --color-brand-dark: #161616;
+  --color-brand-dark-elevated: #1a1a1a;
   --color-brand-medium: #212121;
+  --color-brand-medium-hover: #262626;
   --color-brand-light: #6B6B6B;
+  --color-brand-light-hover: #808080;
   --color-brand-beige: #EDEDED;
+  --color-brand-beige-muted: #CCCCCC;
 
   --color-brand-accent: #FF6C37;
   --color-brand-accent-hover: #E05A2B;
+  --color-brand-accent-light: #FF8A6A;
+  --color-brand-accent-dark: #CC5730;
   --color-brand-success: #81B29A;
+  --color-brand-success-light: #9FC4B0;
   --color-brand-error: #E63946;
+  --color-brand-error-light: #EB5A65;
   --color-brand-warning: #F2CC8F;
+  --color-brand-warning-light: #F5D5A0;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-montserrat);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -62,10 +93,160 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #555;
   }
+
+  /* Depth & Elevation Classes */
+  .depth-card {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+  }
+
+  .depth-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .depth-elevated {
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .depth-button {
+    background: var(--gradient-accent);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(255, 108, 55, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .depth-button:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .depth-button:active {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(0);
+  }
+
+  .depth-input {
+    background: var(--color-brand-medium);
+    border: 1px solid var(--color-brand-light);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .depth-input:focus {
+    border-color: var(--color-brand-accent);
+    box-shadow: 0 0 0 3px rgba(255, 108, 55, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    outline: none;
+  }
+
+  .depth-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .depth-text-shadow {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Glass Effect */
+  .glass-effect {
+    background: rgba(33, 33, 33, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Subtle Animations */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: var(--shadow-sm); }
+    50% { box-shadow: var(--shadow-glow); }
+  }
 }
 
 body {
-  background: var(--background);
+  background: var(--gradient-primary);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Global depth enhancements */
+* {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Enhanced focus states */
+*:focus-visible {
+  outline: 2px solid var(--color-brand-accent);
+  outline-offset: 2px;
+}
+
+/* Subtle background pattern for depth */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255, 108, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(129, 178, 154, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Enhanced button styles */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Card-like containers */
+.card, .container {
+  background: var(--gradient-card);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Input enhancements */
+input, textarea, select {
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 0 3px rgba(255, 108, 55, 0.1);
 }

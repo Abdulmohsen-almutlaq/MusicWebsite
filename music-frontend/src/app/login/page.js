@@ -5,9 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const { login, sitePassword, saveSitePassword } = useAuth();
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [sitePassword, setSitePassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,35 +17,13 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     
-    const res = await login(username, password);
+    const res = await login(username, password, sitePassword);
     if (!res.success) {
       setError(res.message);
       setLoading(false);
     }
     // If success, AuthContext handles redirect
   };
-
-  if (!sitePassword) {
-    return (
-      <div className="min-h-screen bg-brand-dark text-brand-beige flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-brand-medium/30 p-8 rounded-2xl border border-brand-light/20 backdrop-blur-sm text-center">
-          <h1 className="text-2xl font-bold mb-4">Private Access</h1>
-          <p className="text-brand-light mb-6">Please enter the site password to continue.</p>
-          <form onSubmit={(e) => { e.preventDefault(); saveSitePassword(e.target[0].value); }} className="flex flex-col gap-4">
-            <input 
-              type="password" 
-              placeholder="Site Password" 
-              className="w-full bg-brand-dark border border-brand-light/20 rounded-lg p-3 focus:border-brand-beige outline-none transition-colors text-center" 
-              autoFocus
-            />
-            <button className="bg-brand-beige text-brand-dark font-bold py-3 rounded-lg hover:opacity-90 transition-opacity">
-              Enter
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-brand-dark text-brand-beige flex items-center justify-center p-4">
@@ -58,6 +37,18 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-brand-light mb-1">Site Password</label>
+            <input 
+              type="password" 
+              value={sitePassword}
+              onChange={(e) => setSitePassword(e.target.value)}
+              className="w-full bg-brand-dark border border-brand-light/20 rounded-lg p-3 focus:border-brand-beige outline-none transition-colors"
+              placeholder="Enter site access password"
+              required
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-brand-light mb-1">Username</label>
             <input 

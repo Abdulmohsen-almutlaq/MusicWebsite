@@ -1,9 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import * as mm from 'music-metadata-browser';
 import api from '../../utils/api';
-import { UploadCloud, FileAudio, CheckCircle, AlertCircle, Loader2, FolderInput } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { UploadCloud, FileAudio, CheckCircle, AlertCircle, Loader2, FolderInput, Lock, Send } from 'lucide-react';
 
 const UploadView = ({ 
+  user,
   handleUpload, 
   uploadTitle, setUploadTitle, 
   uploadArtist, setUploadArtist, 
@@ -11,15 +13,106 @@ const UploadView = ({
   setUploadFile, setUploadCover, 
   isUploading, genres 
 }) => {
+  const { refreshUser } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [batchQueue, setBatchQueue] = useState([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
 
+  // Access Control State
+  const [hasAccess, setHasAccess] = useState(false);
+  const [requestStatus, setRequestStatus] = useState(null); // null, 'pending', 'approved'
+  const [requestReason, setRequestReason] = useState('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'uploader' || user.role === 'admin') {
+        setHasAccess(true);
+      } else {
+        setHasAccess(false);
+        checkRequestStatus();
+      }
+    }
+  }, [user]);
+
+  // Check for role updates on mount
+  useEffect(() => {
+    if (user && user.role !== 'uploader' && user.role !== 'admin') {
+      refreshUser();
+    }
+  }, []);
+
+  const checkRequestStatus = async () => {
+    try {
+      const { data } = await api.get('/users/request-status');
+      if (data.hasPendingRequest) {
+        setRequestStatus('pending');
+      }
+    } catch (error) {
+      console.error("Failed to check request status", error);
+    }
+  };
+
+  const handleRequestAccess = async (e) => {
+    e.preventDefault();
+    setSubmittingRequest(true);
+    try {
+      await api.post('/users/request-access', { reason: requestReason });
+      setRequestStatus('pending');
+      alert("Request submitted successfully!");
+    } catch (error) {
+      console.error("Failed to submit request", error);
+      alert(error.response?.data?.message || "Failed to submit request");
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
+
+  // Image Compression Helper
+  const compressImage = async (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+          }, 'image/jpeg', 0.7); // 70% quality
+        };
+      };
+    });
+  };
+
   const onDragOver = useCallback((e) => {
     e.preventDefault();
-    setIsDragging(true);
-  }, []);
+    if (hasAccess) setIsDragging(true);
+  }, [hasAccess]);
 
   const onDragLeave = useCallback((e) => {
     e.preventDefault();
@@ -73,11 +166,13 @@ const UploadView = ({
       let coverFile = null;
       if (common.picture && common.picture.length > 0) {
         const pic = common.picture[0];
-        coverFile = new File([pic.data], 'cover.jpg', { type: pic.format });
+        // Compress extracted cover art
+        const rawFile = new File([pic.data], 'cover.jpg', { type: pic.format });
+        coverFile = await compressImage(rawFile);
       }
 
       return {
-        title: common.title || file.name.replace(/\.[^/.]+$/, ""),
+        title: file.name.replace(/\.[^/.]+$/, ""), // Always use filename as title
         artist: common.artist || 'Unknown Artist',
         genre: common.genre && common.genre.length > 0 ? common.genre[0] : 'Other',
         cover: coverFile
@@ -95,6 +190,7 @@ const UploadView = ({
 
   const onDrop = async (e) => {
     e.preventDefault();
+    if (!hasAccess) return;
     setIsDragging(false);
     
     const items = e.dataTransfer.items;
@@ -199,6 +295,80 @@ const UploadView = ({
     setIsBatchProcessing(false);
   };
 
+  // Handle manual audio file selection
+  const handleAudioFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadFile(file);
+      // Auto-fill title with filename (removing extension)
+      const fileName = file.name.replace(/\.[^/.]+$/, "");
+      setUploadTitle(fileName);
+    }
+  };
+
+  // Handle manual file selection with compression
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const compressed = await compressImage(file);
+      setUploadCover(compressed);
+    }
+  };
+
+  if (!hasAccess) {
+    return (
+      <div className="max-w-2xl mx-auto pb-20 pt-10 text-center">
+        <div className="bg-brand-medium/50 p-8 rounded-2xl border border-brand-light/10">
+          <div className="w-20 h-20 bg-brand-dark rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock size={40} className="text-brand-light" />
+          </div>
+          <h2 className="text-3xl font-bold text-brand-beige mb-4">Upload Access Restricted</h2>
+          <p className="text-brand-light mb-8">
+            You need special permissions to upload music to this platform. 
+            {requestStatus === 'pending' 
+              ? " Your request is currently under review." 
+              : " Please submit a request below to become an uploader."}
+          </p>
+
+          {requestStatus === 'pending' ? (
+            <div className="flex flex-col gap-3">
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 flex items-center justify-center gap-3 text-yellow-200">
+                <Loader2 className="animate-spin" size={20} />
+                <span>Request Pending Approval</span>
+              </div>
+              <button 
+                onClick={() => { refreshUser(); checkRequestStatus(); }}
+                className="text-sm text-brand-light hover:text-brand-beige underline"
+              >
+                Check Status Again
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleRequestAccess} className="space-y-4 text-left">
+              <div>
+                <label className="block text-sm font-medium text-brand-light mb-2">Why do you want to upload?</label>
+                <textarea 
+                  className="w-full bg-brand-dark border border-brand-light/20 rounded-lg p-3 focus:border-brand-beige outline-none text-brand-beige transition-colors h-32 resize-none"
+                  placeholder="Tell us about your music..."
+                  value={requestReason}
+                  onChange={e => setRequestReason(e.target.value)}
+                  required
+                />
+              </div>
+              <button 
+                disabled={submittingRequest}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {submittingRequest ? <Loader2 className="animate-spin" /> : <Send size={18} />}
+                Submit Request
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto pb-20">
       <h2 className="text-3xl font-bold mb-8">Upload Track</h2>
@@ -300,11 +470,11 @@ const UploadView = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-brand-light">Audio File</label>
-            <input type="file" accept="audio/*" className="w-full text-sm text-brand-light file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-light file:text-brand-beige hover:file:bg-brand-light/80 cursor-pointer" onChange={e => setUploadFile(e.target.files[0])} required />
+            <input type="file" accept="audio/*" className="w-full text-sm text-brand-light file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-light file:text-brand-beige hover:file:bg-brand-light/80 cursor-pointer" onChange={handleAudioFileSelect} required />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-brand-light">Cover Art</label>
-            <input type="file" accept="image/*" className="w-full text-sm text-brand-light file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-light file:text-brand-beige hover:file:bg-brand-light/80 cursor-pointer" onChange={e => setUploadCover(e.target.files[0])} />
+            <input type="file" accept="image/*" className="w-full text-sm text-brand-light file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-light file:text-brand-beige hover:file:bg-brand-light/80 cursor-pointer" onChange={handleFileSelect} />
           </div>
         </div>
 

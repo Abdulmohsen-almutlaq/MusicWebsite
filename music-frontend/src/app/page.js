@@ -18,6 +18,7 @@ import FollowingView from '../components/views/FollowingView';
 import SocialView from '../components/views/SocialView';
 import PublicProfileView from '../components/views/PublicProfileView';
 import ArtistsView from '../components/views/ArtistsView';
+import AdminView from '../components/views/AdminView';
 
 export default function Home() {
   const [viewedProfileId, setViewedProfileId] = useState(null);
@@ -78,7 +79,7 @@ export default function Home() {
 
   // --- LANDING PAGE (No User) ---
   if (!user) {
-    return <LandingPage sitePassword={sitePassword} saveSitePassword={saveSitePassword} />;
+    return <LandingPage />;
   }
 
   // --- MAIN APP LAYOUT ---
@@ -91,6 +92,7 @@ export default function Home() {
         logout={logout} 
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen}
+        user={user}
       />
 
       {/* Main Content */}
@@ -156,6 +158,7 @@ export default function Home() {
           {/* VIEW: UPLOAD */}
           {view === 'upload' && (
             <UploadView 
+              user={user}
               handleUpload={handleUpload}
               uploadTitle={uploadTitle} setUploadTitle={setUploadTitle}
               uploadArtist={uploadArtist} setUploadArtist={setUploadArtist}
@@ -284,6 +287,11 @@ export default function Home() {
               handleUnfollow={handleUnfollow}
               fetchFollowing={fetchFollowing}
             />
+          )}
+
+          {/* VIEW: ADMIN */}
+          {view === 'admin' && user.role === 'admin' && (
+            <AdminView />
           )}
 
         </main>

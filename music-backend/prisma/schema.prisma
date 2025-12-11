@@ -26,6 +26,20 @@ model User {
   likes             Like[]
   playlistLikes     PlaylistLike[]
   comments          Comment[]
+  
+  // Access Control
+  role              String    @default("user") // "user", "uploader", "admin"
+  accessRequests    AccessRequest[]
+}
+
+model AccessRequest {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  status    String   @default("pending") // "pending", "approved", "rejected"
+  reason    String?
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Track {

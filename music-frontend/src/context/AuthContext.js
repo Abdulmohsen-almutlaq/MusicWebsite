@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     // Load stored data on mount
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    const storedSitePass = localStorage.getItem('site_password');
+    const storedSitePass = sessionStorage.getItem('site_password') || localStorage.getItem('site_password');
 
     if (storedSitePass) {
       setSitePassword(storedSitePass);
@@ -71,7 +71,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const saveSitePassword = (password) => {
-    localStorage.setItem('site_password', password);
+    sessionStorage.setItem('site_password', password);
+    // Clear local storage to avoid confusion/persistence across sessions
+    localStorage.removeItem('site_password');
     setSitePassword(password);
   };
 
@@ -104,8 +106,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (email, username, password, isPrivate) => {
+  const register = async (email, username, password, isPrivate, globalPassword) => {
     try {
+      if (globalPassword) {
+        saveSitePassword(globalPassword);
+      }
       await api.post('/auth/register', { email, username, password, isPrivate });
       return { success: true };
     } catch (error) {
@@ -120,8 +125,26 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('site_password');
+    localStorage.removeItem('site_password');
+    setSitePassword(null);
     setUser(null);
     router.push('/login');
+  };
+
+  const refreshUser = async () => {
+    if (!user || !user.id) return;
+    try {
+      const { data } = await api.get(`/users/${user.id}`);
+      // data is the profile object
+      const updatedUser = { ...user, ...data };
+      
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      return updatedUser;
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
   };
 
   return (
@@ -132,7 +155,8 @@ export const AuthProvider = ({ children }) => {
       saveSitePassword, 
       login, 
       register, 
-      logout 
+      logout,
+      refreshUser
     }}>
       {children}
     </AuthContext.Provider>

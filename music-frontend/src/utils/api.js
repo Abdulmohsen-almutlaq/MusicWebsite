@@ -8,8 +8,8 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      // 1. Site Password (from LocalStorage)
-      const sitePassword = localStorage.getItem('site_password');
+      // 1. Site Password (from SessionStorage or LocalStorage)
+      const sitePassword = sessionStorage.getItem('site_password') || localStorage.getItem('site_password');
       if (sitePassword) {
         config.headers['x-site-password'] = sitePassword;
       }

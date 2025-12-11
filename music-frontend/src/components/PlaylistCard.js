@@ -1,10 +1,12 @@
-import { Play, Trash2, Music, MoreVertical, Disc } from 'lucide-react';
+import { Play, Pause, Trash2, Music, MoreVertical, Disc } from 'lucide-react';
 import { useMemo, useState, memo } from 'react';
 import { getCoverUrl } from '../utils/api';
+import { usePlayer } from '../context/PlayerContext';
 
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%231B3C53'/%3E%3Ctext x='150' y='150' font-family='sans-serif' font-size='24' fill='%23456882' text-anchor='middle' dy='.3em'%3EPlaylist%3C/text%3E%3C/svg%3E";
 
 const PlaylistCard = memo(({ playlist, onPlay, onDelete }) => {
+  const { currentTrack, isPlaying, togglePlay } = usePlayer();
   const [imgError, setImgError] = useState(false);
 
   // Extract covers from playlist tracks
@@ -22,10 +24,22 @@ const PlaylistCard = memo(({ playlist, onPlay, onDelete }) => {
       .slice(0, 4);
   }, [playlist.tracks]);
 
+  // Check if this playlist is currently active (heuristic based on visible tracks)
+  const isCurrentPlaylist = useMemo(() => {
+    if (!currentTrack || !playlist.tracks) return false;
+    return playlist.tracks.some(t => (t.track?.id || t.id) === currentTrack.id);
+  }, [currentTrack, playlist.tracks]);
+
+  const isThisPlaying = isCurrentPlaylist && isPlaying;
+
   const handlePlayClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    onPlay && onPlay(playlist);
+    if (isCurrentPlaylist) {
+      togglePlay();
+    } else {
+      onPlay && onPlay(playlist);
+    }
   };
 
   const handleDeleteClick = (e) => {
@@ -87,10 +101,14 @@ const PlaylistCard = memo(({ playlist, onPlay, onDelete }) => {
         {/* Play Button */}
         <button 
           onClick={handlePlayClick}
-          className="absolute bottom-4 right-4 w-12 h-12 bg-brand-light hover:bg-brand-light/80 text-brand-beige rounded-full flex items-center justify-center shadow-lg shadow-brand-dark/50 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95 z-10"
-          aria-label={`Play ${playlist.name}`}
+          className={`absolute bottom-4 right-4 w-12 h-12 bg-brand-light hover:bg-brand-light/80 text-brand-beige rounded-full flex items-center justify-center shadow-lg shadow-brand-dark/50 transition-all duration-300 hover:scale-110 active:scale-95 z-20 ${isThisPlaying ? 'opacity-100 translate-y-0' : 'translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'}`}
+          aria-label={isThisPlaying ? "Pause" : `Play ${playlist.name}`}
         >
-          <Play fill="currentColor" className="ml-1" size={20} />
+          {isThisPlaying ? (
+            <Pause fill="currentColor" size={20} />
+          ) : (
+            <Play fill="currentColor" className="ml-1" size={20} />
+          )}
         </button>
       </div>
 

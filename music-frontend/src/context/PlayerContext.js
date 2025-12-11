@@ -24,6 +24,58 @@ export const PlayerProvider = ({ children }) => {
   const [isShuffling, setIsShuffling] = useState(false);
   const [repeatMode, setRepeatMode] = useState('none'); // 'none', 'all', 'one'
 
+  // --- COOKIE MANAGEMENT HELPERS ---
+  const setCookie = (name, value, days = 365) => {
+    if (typeof document === 'undefined') return;
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(JSON.stringify(value))}; expires=${expires}; path=/; SameSite=Strict`;
+  };
+
+  const getCookie = (name) => {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      try {
+        return JSON.parse(decodeURIComponent(parts.pop().split(';').shift()));
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // --- INITIALIZE FROM COOKIES ---
+  useEffect(() => {
+    // 1. Load Volume
+    const savedVolume = getCookie('music_volume');
+    if (savedVolume !== null) setVolume(Number(savedVolume));
+
+    // 2. Load Mute State
+    const savedMute = getCookie('music_muted');
+    if (savedMute !== null) setIsMuted(Boolean(savedMute));
+
+    // 3. Load Shuffle/Repeat
+    const savedPrefs = getCookie('player_prefs');
+    if (savedPrefs) {
+      if (savedPrefs.shuffle !== undefined) setIsShuffling(savedPrefs.shuffle);
+      if (savedPrefs.repeat !== undefined) setRepeatMode(savedPrefs.repeat);
+    }
+  }, []);
+
+  // --- PERSIST CHANGES TO COOKIES ---
+  useEffect(() => {
+    setCookie('music_volume', volume);
+  }, [volume]);
+
+  useEffect(() => {
+    setCookie('music_muted', isMuted);
+  }, [isMuted]);
+
+  useEffect(() => {
+    setCookie('player_prefs', { shuffle: isShuffling, repeat: repeatMode });
+  }, [isShuffling, repeatMode]);
+
   // Clear player on logout
   useEffect(() => {
     if (!user) {

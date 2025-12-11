@@ -143,13 +143,47 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+    // Set HttpOnly Cookie for Token
+    res.cookie('token', token, {
+      httpOnly: true, // Prevent JS access (XSS protection)
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'strict', // CSRF protection
+      maxAge: 3600000 // 1 hour
+    });
+
+    // Set Site Password Cookie (if applicable)
+    let role = user.role;
+    if (req.headers['x-site-password'] || req.query.site_password) {
+      const sitePass = req.headers['x-site-password'] || req.query.site_password;
+      
+      // Check for Admin Site Password
+      if (process.env.ADMIN_SITE_PASSWORD && sitePass === process.env.ADMIN_SITE_PASSWORD) {
+        role = 'admin';
+        // Optionally update the user in DB to be admin permanently, 
+        // OR just grant admin session for this login.
+        // For now, let's just grant it for the session response.
+        // If you want to persist it:
+        if (user.role !== 'admin') {
+           await prisma.user.update({ where: { id: user.id }, data: { role: 'admin' } });
+        }
+      }
+
+      res.cookie('site_password', sitePass, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+    }
+
     res.status(200).json({ 
-      token,
+      token, // Keep sending token for mobile/legacy clients
       user: {
         id: user.id,
         email: user.email,
         username: user.username,
-        isPrivate: user.isPrivate
+        isPrivate: user.isPrivate,
+        role: role
       }
     });
   } catch (error) {

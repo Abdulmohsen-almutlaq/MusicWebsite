@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@socket.io/sticky": "^1.0.4"
+  }
+}

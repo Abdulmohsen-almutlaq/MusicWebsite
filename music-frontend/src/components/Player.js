@@ -129,9 +129,6 @@ export default function Player() {
 
       {/* Volume - Right Column */}
       <div className="flex items-center justify-end gap-2 md:gap-3 justify-self-end w-full text-gray-400 pl-2">
-        <button className="hidden md:block hover:text-white transition-colors"><Mic2 size={18} /></button>
-        <button className="hidden md:block hover:text-white transition-colors"><ListMusic size={18} /></button>
-        
         <div className="flex items-center justify-end gap-2 w-full max-w-[120px] group">
           <button onClick={toggleMute} className="hover:text-white transition-colors flex-shrink-0">
             {isMuted || volume === 0 ? <VolumeX size={18} className="md:w-5 md:h-5" /> : <Volume2 size={18} className="md:w-5 md:h-5" />}
