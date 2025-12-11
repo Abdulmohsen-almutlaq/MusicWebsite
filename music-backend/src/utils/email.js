@@ -2,7 +2,9 @@ const { Resend } = require('resend');
 
 const sendVerificationEmail = async (email, token) => {
   // Point to the Frontend Verify Page
-  const verificationLink = `${process.env.API_URL}/verify?token=${token}`;
+  // Use FRONTEND_URL if available, otherwise fallback to API_URL or a default
+  const baseUrl = process.env.FRONTEND_URL || process.env.API_URL || 'http://localhost:3000';
+  const verificationLink = `${baseUrl}/verify?token=${token}`;
   const apiKey = process.env.SMTP_PASS; // We stored the Resend Key here in the previous steps
 
   // Check if we have a Resend API Key (starts with 're_')
