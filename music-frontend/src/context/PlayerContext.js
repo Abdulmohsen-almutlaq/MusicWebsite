@@ -246,8 +246,9 @@ export const PlayerProvider = ({ children }) => {
   }, [currentTrack]);
 
   // Construct Stream URL with Auth
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
   const streamUrl = currentTrack 
-    ? `${process.env.NEXT_PUBLIC_API_URL}/tracks/stream/${currentTrack.id}?site_password=${sitePassword}`
+    ? `${apiUrl}/tracks/stream/${currentTrack.id}?site_password=${sitePassword}`
     : undefined;
 
   return (

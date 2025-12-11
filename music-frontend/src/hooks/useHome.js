@@ -115,7 +115,7 @@ export const useHome = () => {
       };
       initLoad();
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
       const socketUrl = apiUrl.includes('/api') ? apiUrl.replace('/api', '') : apiUrl;
       const socket = io(socketUrl);
       
