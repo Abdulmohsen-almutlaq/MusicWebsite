@@ -11,8 +11,12 @@ const nextConfig = {
         destination: 'http://api:3000/covers/:path*', // Proxy to Static files
       },
       {
-        source: '/socket.io/:path*',
-        destination: 'http://api:3000/socket.io/:path*', // Proxy to Socket.io
+        source: '/socket.io',
+        destination: 'http://api:3000/socket.io/', 
+      },
+      {
+        source: '/socket.io/:path+',
+        destination: 'http://api:3000/socket.io/:path+', 
       },
     ]
   },

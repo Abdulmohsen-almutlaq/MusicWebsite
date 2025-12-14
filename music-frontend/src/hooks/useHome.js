@@ -117,7 +117,10 @@ export const useHome = () => {
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
       const socketUrl = apiUrl.includes('/api') ? apiUrl.replace('/api', '') : apiUrl;
-      const socket = io(socketUrl);
+      const socket = io(socketUrl, {
+        path: '/socket.io',
+        transports: ['polling', 'websocket']
+      });
       
       socket.on('new_track', (data) => {
         setSocketMessage(`New Release: ${data.track.title}`);
