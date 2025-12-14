@@ -8,6 +8,8 @@ services:
       - POSTGRES_DB=musicdb
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
     restart: always
 
   # Node.js Backend
@@ -27,7 +29,9 @@ services:
       - ADMIN_SITE_PASSWORD=${ADMIN_SITE_PASSWORD}
       - FRONTEND_URL=${PUBLIC_FRONTEND_URL}
     volumes:
-      - ./data:/app/data
+      - ./uploads:/app/data
+    depends_on:
+      - db
     restart: always
 
   # Frontend (Next.js)
@@ -35,11 +39,11 @@ services:
     build:
       context: ./music-frontend
       args:
-        NEXT_PUBLIC_API_URL: ${PUBLIC_BACKEND_URL}
+        NEXT_PUBLIC_API_URL: /api
     ports:
       - "80:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${PUBLIC_BACKEND_URL}
+      - NEXT_PUBLIC_API_URL=/api
     depends_on:
       - api
     restart: always
