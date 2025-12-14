@@ -258,6 +258,7 @@ export const PlayerProvider = ({ children }) => {
     <PlayerContext.Provider value={{ 
       currentTrack, 
       isPlaying, 
+      setIsPlaying, // Exported for Player component events
       queue,
       volume,
       isMuted,
@@ -265,6 +266,7 @@ export const PlayerProvider = ({ children }) => {
       duration,
       isShuffling,
       repeatMode,
+      streamUrl, // Exported for Player component
       playTrack, 
       togglePlay,
       nextTrack,
@@ -277,16 +279,6 @@ export const PlayerProvider = ({ children }) => {
       audioRef 
     }}>
       {children}
-      
-      {/* Global Audio Element */}
-      <audio
-        ref={audioRef}
-        src={streamUrl}
-        autoPlay={isPlaying}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        crossOrigin="anonymous"
-      />
     </PlayerContext.Provider>
   );
 };
